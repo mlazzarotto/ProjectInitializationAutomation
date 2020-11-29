@@ -1,6 +1,8 @@
 from secrets import github_token, project_path
 from github import Github
 from git import Repo
+import venv
+import subprocess
 import sys
 
 
@@ -11,6 +13,7 @@ class ProjectInitAutomator:
         self.repo_full_name = self.create_github_repo(
             self.repo_name, self.is_private)
         self.clone_repo(self.repo_full_name, project_path)
+        self.create_venv(repo_name, project_path)
 
     def create_github_repo(self, repo_name, is_private):
         """ This function creates a new Github repo(public or private), with its own .gitignore for Python and a Readme.md file """
@@ -41,16 +44,20 @@ class ProjectInitAutomator:
             print("There's a problem cloning the repo:\n{}".format(
                 e.args[2].decode('UTF-8')))
 
-    def create_vevn(self):
+    def create_venv(self, repo_name, project_path):
         """ Function that creates a virtual environment inside the project
         folder, and that install some packages needed by VS Code, and excludes
         the .vscode folder in .gitignore """
-
-        pass
+        venv_dir = project_path + repo_name + "\\.venv"
+        try:
+            venv.create(venv_dir)
+            print("Done! Created a new virtual environment in {}".format(venv_dir))
+        except Exception as e:
+            print(e)
 
     def repo_config(self):
         pass
 
 
 if __name__ == '__main__':
-    pia = ProjectInitAutomator("repo_name", True)
+    pia = ProjectInitAutomator("repo_1212", True)
