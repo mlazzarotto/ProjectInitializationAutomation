@@ -4,16 +4,22 @@ from git import Repo
 import venv
 import subprocess
 import sys
+import os
+import pip
 
 
 class ProjectInitAutomator:
     def __init__(self, repo_name, is_private):
         self.repo_name = repo_name
         self.is_private = is_private
+        self.repo_path = project_path + self.repo_name
+
         self.repo_full_name = self.create_github_repo(
             self.repo_name, self.is_private)
-        self.clone_repo(self.repo_full_name, project_path)
-        self.create_venv(repo_name, project_path)
+        self.clone_repo(self.repo_full_name, self.repo_path)
+        self.create_venv(self.repo_path)
+        self.repo_config(self.repo_path)
+        self.gitignore_modifier((self.repo_path))
 
     def create_github_repo(self, repo_name, is_private):
         """ This function creates a new Github repo(public or private), with its own .gitignore for Python and a Readme.md file """
@@ -31,33 +37,59 @@ class ProjectInitAutomator:
             print("{}\n{}".format(error_message, error_cause))
             sys.exit()
 
-    def clone_repo(self, repo_full_name, project_path):
+    def clone_repo(self, repo_full_name, repo_path):
         """ This function clones the repo from Github """
         g = Github(github_token)
         repo = g.get_repo(repo_full_name)
         clone_url = repo.clone_url
-        repo_cloned_path = project_path + repo.name
+
         try:
-            Repo.clone_from(clone_url, repo_cloned_path)
-            print("Done! New repo cloned in {}".format(repo_cloned_path))
+            Repo.clone_from(clone_url, repo_path)
+            print("Done! New repo cloned in {}".format(repo_path))
         except Exception as e:
             print("There's a problem cloning the repo:\n{}".format(
                 e.args[2].decode('UTF-8')))
 
-    def create_venv(self, repo_name, project_path):
+    def create_venv(self, repo_path):
         """ Function that creates a virtual environment inside the project
         folder, and that install some packages needed by VS Code, and excludes
         the .vscode folder in .gitignore """
-        venv_dir = project_path + repo_name + "\\.venv"
+        venv_dir = repo_path + "\\.venv"
         try:
             venv.create(venv_dir)
             print("Done! Created a new virtual environment in {}".format(venv_dir))
         except Exception as e:
             print(e)
 
-    def repo_config(self):
-        pass
+    def repo_config(self, repo_path):
+        """ Functions that updates pip and installs autopep8 and pylint inside
+        the virual environment"""
+        env = os.environ
+        virtual_env = repo_path + "\\.venv"
+        env.update({"VIRTUAL_ENV": virtual_env})
+
+        path = virtual_env + "\\Scripts;" + env["PATH"]
+        env.update({"PATH": path})
+
+        subprocess.run("pip install --upgrade pip",
+                       env=env, stdout=subprocess.DEVNULL)
+        subprocess.run("pip install autopep8 pylint",
+                       env=env, stdout=subprocess.DEVNULL)
+
+    def gitignore_modifier(self, repo_path):
+        """ Function that excludes the VS Code folder and the secrets.py from
+        being tracked by git """
+        gitignore_file = repo_path + "\\.gitignore"
+        try:
+            with open(gitignore_file, "a") as file:
+                file.write("\n\n")
+                file.write(".vscode\n")
+                file.write("secrets.py\n")
+            print("Done! Added vscode and secrets.py to .gitignore")
+        except Exception as e:
+            print("Couldn't open the file .gitignore!")
+            print(e)
 
 
 if __name__ == '__main__':
-    pia = ProjectInitAutomator("repo_1212", True)
+    pia = ProjectInitAutomator("repo_0847", True)
