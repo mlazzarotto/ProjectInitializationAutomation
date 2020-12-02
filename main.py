@@ -1,4 +1,4 @@
-from secrets import github_token, project_path
+from secrets import github_token, project_path, code_path
 from github import Github
 from git import Repo
 import venv
@@ -19,7 +19,12 @@ class ProjectInitAutomator:
         self.clone_repo(self.repo_full_name, self.repo_path)
         self.create_venv(self.repo_path)
         self.repo_config(self.repo_path)
-        self.gitignore_modifier((self.repo_path))
+        self.gitignore_modifier(self.repo_path)
+        self.file_creator(self.repo_path)
+
+        # Command to open the folder in VS Code
+        subprocess.run(code_path + " -a " + self.repo_path)
+        print("All done! Enjoi :)")
 
     def create_github_repo(self, repo_name, is_private):
         """ This function creates a new Github repo(public or private), with its own .gitignore for Python and a Readme.md file """
@@ -45,7 +50,7 @@ class ProjectInitAutomator:
 
         try:
             Repo.clone_from(clone_url, repo_path)
-            print("Done! New repo cloned in {}".format(repo_path))
+            print("Done! New repo cloned in\t{}".format(repo_path))
         except Exception as e:
             print("There's a problem cloning the repo:\n{}".format(
                 e.args[2].decode('UTF-8')))
@@ -57,7 +62,7 @@ class ProjectInitAutomator:
         venv_dir = repo_path + "\\.venv"
         try:
             venv.create(venv_dir)
-            print("Done! Created a new virtual environment in {}".format(venv_dir))
+            print("Done! Created a new virtual environment in\t{}".format(venv_dir))
         except Exception as e:
             print(e)
 
@@ -90,6 +95,12 @@ class ProjectInitAutomator:
             print("Couldn't open the file .gitignore!")
             print(e)
 
+    def file_creator(self, repo_path):
+        """ Function that creates an empty main.py file """
+        if os.path.exists(repo_path):
+            with open(os.path.join(repo_path + "\\" + "main.py"), "a"):
+                print("Done! Created main.py")
+
 
 if __name__ == '__main__':
-    pia = ProjectInitAutomator("repo_0847", True)
+    pia = ProjectInitAutomator("repo_new_final", True)
