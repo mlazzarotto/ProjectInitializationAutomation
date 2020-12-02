@@ -1,4 +1,4 @@
-# PythonProjectInitialization
+# PythonProjectInitializer
 
 <h3 align="center">Project Initializer for Python</h3>
 
