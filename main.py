@@ -8,23 +8,26 @@ import os
 import pip
 
 
-class ProjectInitAutomator:
-    def __init__(self, repo_name, is_private):
-        self.repo_name = repo_name
-        self.is_private = is_private
+class ProjectInitializer:
+    def __init__(self):
+        self.repo_name = input("Insert the new repo name:")
+        if (_ := input("Should the repo be private? [Y/N]").lower()[0]) == "y":
+            self.is_private = True
+        else:
+            self.is_private = False
         self.repo_path = project_path + self.repo_name
 
+    def run(self):
         self.repo_full_name = self.create_github_repo(
             self.repo_name, self.is_private)
         self.clone_repo(self.repo_full_name, self.repo_path)
         self.create_venv(self.repo_path)
-        self.repo_config(self.repo_path)
         self.gitignore_modifier(self.repo_path)
         self.file_creator(self.repo_path)
 
         # Command to open the folder in VS Code
         subprocess.run(code_path + " -a " + self.repo_path)
-        print("All done! Enjoi :)")
+        print("All done! Enjoy :)")
 
     def create_github_repo(self, repo_name, is_private):
         """ This function creates a new Github repo(public or private), with its own .gitignore for Python and a Readme.md file """
@@ -66,21 +69,6 @@ class ProjectInitAutomator:
         except Exception as e:
             print(e)
 
-    def repo_config(self, repo_path):
-        """ Functions that updates pip and installs autopep8 and pylint inside
-        the virual environment"""
-        env = os.environ
-        virtual_env = repo_path + "\\.venv"
-        env.update({"VIRTUAL_ENV": virtual_env})
-
-        path = virtual_env + "\\Scripts;" + env["PATH"]
-        env.update({"PATH": path})
-
-        subprocess.run("pip install --upgrade pip",
-                       env=env, stdout=subprocess.DEVNULL)
-        subprocess.run("pip install autopep8 pylint",
-                       env=env, stdout=subprocess.DEVNULL)
-
     def gitignore_modifier(self, repo_path):
         """ Function that excludes the VS Code folder and the secrets.py from
         being tracked by git """
@@ -103,4 +91,5 @@ class ProjectInitAutomator:
 
 
 if __name__ == '__main__':
-    pia = ProjectInitAutomator("repo_new_final", True)
+    pi = ProjectInitializer()
+    pi.run()
